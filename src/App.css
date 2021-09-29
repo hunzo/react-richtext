@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  /* background: #282c34; */
 }
 
 .App-logo {
@@ -11,6 +12,10 @@
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+
+.RichText {
+  padding: 3rem;  
 }
 
 .App-header {
