@@ -1,27 +1,97 @@
-import React, {useEffect, useState} from 'react'
-import {EditorState, convertToRaw } from 'draft-js'
+import React, { useEffect, useState } from 'react'
+import { EditorState, convertToRaw, convertFromRaw } from 'draft-js'
 import { Editor } from 'react-draft-wysiwyg'
 import draftToHtml from 'draftjs-to-html'
+import './richtext.css'
 
 const RichText = () => {
-    const [editorState, setEditorState] = useState(() => EditorState.createEmpty())
+    const [editorState, setEditorState] = useState(() =>
+        EditorState.createEmpty()
+    )
+
+    const [isContent, setIsContent] = useState(false)
     useEffect(() => {
-        // setdata(draftToHtml(convertToRaw(editorState.getCurrentContent())))
+        checkContent()
         console.log(draftToHtml(convertToRaw(editorState.getCurrentContent())))
-    }, [editorState]) 
+    }, [editorState])
+
+    const saveContent = () => {
+        localStorage.setItem(
+            '_data',
+            JSON.stringify(convertToRaw(editorState.getCurrentContent()))
+        )
+        setIsContent(true)
+        // console.log("save data !!")
+    }
+
+    const checkContent = () => {
+        localStorage.getItem('_data') ? setIsContent(true) : setIsContent(false)
+    }
+
+    const loadContent = () => {
+        // console.log(convertFromRaw(JSON.parse(localStorage.getItem("_data"))))
+        setEditorState(
+            EditorState.createWithContent(
+                convertFromRaw(JSON.parse(localStorage.getItem('_data')))
+            )
+        )
+    }
+
+    const clearContent = () => {
+        setEditorState(EditorState.createEmpty())
+        localStorage.clear()
+        setIsContent(false)
+    }
+
     return (
         <div>
-            {JSON.stringify(draftToHtml(convertToRaw(editorState.getCurrentContent())))}
-            <Editor
-            editorState={editorState}
-            onEditorStateChange={setEditorState}
-            />
+                <h1>Rich Text Example</h1>
+                <div style={{ marginBottom: '2rem' }}>
+                    <button onClick={saveContent}>Save Content</button>
+                    <button
+                        onClick={loadContent}
+                        style={{
+                            marginLeft: '1rem',
+                            display: isContent ? 'inline-block' : 'none',
+                        }}
+                    >
+                        Load Content Last Save
+                    </button>
+                    <button
+                        onClick={clearContent}
+                        style={{ marginLeft: '1rem' }}
+                    >
+                        Clear Content
+                    </button>
+                </div>
+                <div className="Editor">
+                <Editor
+                    editorState={editorState}
+                    onEditorStateChange={setEditorState}
+                />
 
-            <textarea value={
-                draftToHtml(convertToRaw(editorState.getCurrentContent()))
-            }/>
-            
-        </div>
+
+                </div>
+                <p><h3>HTML Text</h3></p>
+                <textarea
+                    className="TxA"
+                    value={draftToHtml(
+                        convertToRaw(editorState.getCurrentContent())
+                    )}
+                />
+
+                <h3>HTML</h3>
+                {JSON.stringify(
+                    draftToHtml(convertToRaw(editorState.getCurrentContent()))
+                )}
+                <br />
+                <h3>JSON</h3>
+                {JSON.stringify(convertToRaw(editorState.getCurrentContent()))}
+                <br />
+                <h3>RichText</h3>
+                {JSON.stringify(editorState.getCurrentContent())}
+                <br />
+            </div>
     )
 }
 
