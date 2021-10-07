@@ -4,7 +4,7 @@ import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 
 function App() {
   return (
-    <div className="App">
+    <div className="container">
       <div className="RichText">
         <RichText/>
       </div>

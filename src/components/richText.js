@@ -3,6 +3,7 @@ import { EditorState, convertToRaw, convertFromRaw } from 'draft-js'
 import { Editor } from 'react-draft-wysiwyg'
 import draftToHtml from 'draftjs-to-html'
 import './richtext.css'
+import Preview from './Preview'
 
 const RichText = () => {
     const [editorState, setEditorState] = useState(() =>
@@ -10,26 +11,81 @@ const RichText = () => {
     )
 
     const [isContent, setIsContent] = useState(false)
+    const [raw, setRaw] = useState('')
+    const [html, setHTML] = useState('')
+    const [rtf, setRTF] = useState('')
+
+    const [isShow, setIsShow] = useState(false)
+
     useEffect(() => {
-        checkContent()
-        console.log(draftToHtml(convertToRaw(editorState.getCurrentContent())))
+        checkContentLocalStorage()
+        setRaw(convertToRaw(editorState.getCurrentContent()))
+        setRTF(editorState.getCurrentContent())
+        setEditorState(editorState)
+
+        setHTML(
+            draftToHtml(
+                convertToRaw(editorState.getCurrentContent()),
+                {},
+                false,
+                ({ type, data }) => {
+                    //entity.data.alignment is for float using the LCR options on the image 'none' means the user clicked center
+                    console.log(data)
+                    console.log(type)
+                    if (type === 'IMAGE') {
+                        const alignment =
+                            data.alignment || 'none' || 'undefined'
+                        const textAlign =
+                            alignment === 'none' ? 'center' : alignment
+
+                        return `
+                <p style="text-align:${textAlign};">
+                    <img src="${data.src}" alt="${data.alt}" style="height: ${data.height};width: ${data.width}"/>
+                </p>
+            `
+                    }
+                }
+            )
+        )
     }, [editorState])
 
+    // Example. change by state
+    // const xOnChange = (state) => {
+    //     checkContentLocalStorage()
+    //     setRTF(state.getCurrentContent())
+
+    //     setRaw(convertToRaw(state.getCurrentContent()))
+
+    //     // setHTML(draftToHtml(convertToRaw(state.getCurrentContent())))
+    //     setHTML(
+    //         draftToHtml(convertToRaw(state.getCurrentContent()), {}, false, ({ type, data }) => {
+    //             //entity.data.alignment is for float using the LCR options on the image 'none' means the user clicked center
+    //             if (type === 'IMAGE') {
+    //                 const alignment = data.alignment || 'none' || 'undefined'
+    //                 const textAlign =
+    //                     alignment === 'none' ? 'center' : alignment
+
+    //                 return `
+    //             <p style="text-align:${textAlign};">
+    //                 <img src="${data.src}" alt="${data.alt}" style="height: ${data.height};width: ${data.width}"/>
+    //             </p>
+    //         `
+    //             }
+    //         })
+    //     )
+    //     setEditorState(state)
+    // }
+
     const saveContent = () => {
-        localStorage.setItem(
-            '_data',
-            JSON.stringify(convertToRaw(editorState.getCurrentContent()))
-        )
+        localStorage.setItem('_data', JSON.stringify(raw))
         setIsContent(true)
-        // console.log("save data !!")
     }
 
-    const checkContent = () => {
+    const checkContentLocalStorage = () => {
         localStorage.getItem('_data') ? setIsContent(true) : setIsContent(false)
     }
 
     const loadContent = () => {
-        // console.log(convertFromRaw(JSON.parse(localStorage.getItem("_data"))))
         setEditorState(
             EditorState.createWithContent(
                 convertFromRaw(JSON.parse(localStorage.getItem('_data')))
@@ -73,16 +129,36 @@ const RichText = () => {
                 <button onClick={clearContent} style={{ marginLeft: '1rem' }}>
                     Clear Content
                 </button>
+                <button
+                    onClick={() => setIsShow(!isShow)}
+                    style={{
+                        marginLeft: '1rem',
+                        // display: html ? 'inline-block' : 'none',
+                    }}
+                > { isShow ? "Close": "Preview"}</button>
             </div>
+
             <div className="Editor">
+                {isShow ? <Preview htmlText={html} /> : null}
+                {isShow ? null :
                 <Editor
                     editorState={editorState}
+                    editorStyle={{
+                        border: '1px solid #f1f1f1',
+                        backgroundColor: '#fff',
+                    }}
+                    wrapperStyle={{
+                        border: '1px solid #f1f1f1',
+                        padding: '2rem',
+                        backgroundColor: '#f1f1f1',
+                    }}
+                    toolbarStyle={{ padding: '1rem' }}
                     onEditorStateChange={setEditorState}
                     toolbar={{
                         options: [
-                            'inline',
                             'blockType',
                             'fontSize',
+                            'inline',
                             'fontFamily',
                             'list',
                             'textAlign',
@@ -106,28 +182,22 @@ const RichText = () => {
                             alt: { present: false, mandatory: false },
                         },
                     }}
-                />
+                />}
             </div>
-            <p>
-                <h3>HTML Text</h3>
-            </p>
-            <textarea
-                className="TxA"
-                value={draftToHtml(
-                    convertToRaw(editorState.getCurrentContent())
-                )}
-            />
 
-            <h3>HTML</h3>
-            {JSON.stringify(
-                draftToHtml(convertToRaw(editorState.getCurrentContent()))
-            )}
+            {/* <h3>#debug HTML</h3>
+            {html}
+            <h3>#debug HTML(escape)</h3>
+            {JSON.stringify(html)}
+
+            <h3>#debug ESCAPE</h3>
+            {escape(html)}
             <br />
-            <h3>JSON</h3>
-            {JSON.stringify(convertToRaw(editorState.getCurrentContent()))}
-            <br />
-            <h3>RichText</h3>
-            {JSON.stringify(editorState.getCurrentContent())}
+            <h3>#debug RAW</h3>
+            {JSON.stringify(raw)}
+            <br /> */}
+            <h3>#debug RichTextFormat</h3>
+            {JSON.stringify(rtf)}
             <br />
         </div>
     )
