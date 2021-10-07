@@ -4,6 +4,7 @@ import { Editor } from 'react-draft-wysiwyg'
 import draftToHtml from 'draftjs-to-html'
 import './richtext.css'
 import Preview from './Preview'
+import JSONPreview from './JSONPreview'
 
 const RichText = () => {
     const [editorState, setEditorState] = useState(() =>
@@ -16,6 +17,7 @@ const RichText = () => {
     const [rtf, setRTF] = useState('')
 
     const [isShow, setIsShow] = useState(false)
+    const [jsonShow, setJsonShow] = useState(false)
 
     useEffect(() => {
         checkContentLocalStorage()
@@ -135,12 +137,22 @@ const RichText = () => {
                         marginLeft: '1rem',
                         // display: html ? 'inline-block' : 'none',
                     }}
-                > { isShow ? "Close": "Preview"}</button>
+                > { isShow ? "Close html preview": "HTML Preview"}</button>
+            
+               <button
+                    onClick={() => setJsonShow(!jsonShow)}
+                    style={{
+                        marginLeft: '1rem',
+                        // display: html ? 'inline-block' : 'none',
+                    }}
+                > { jsonShow ? "Close json preview": "JSON Preview"}</button>
             </div>
 
             <div className="Editor">
                 {isShow ? <Preview htmlText={html} /> : null}
-                {isShow ? null :
+                {jsonShow ? <JSONPreview htmlText={html} />: null}
+
+                {isShow || jsonShow ? null :
                 <Editor
                     editorState={editorState}
                     editorStyle={{

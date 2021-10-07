@@ -9,7 +9,7 @@ function Preview({ htmlText }) {
     }
     return (
         <div>
-            <h2>Preview</h2>
+            <h2>HTML Preview</h2>
             <div
                 style={{
                     border: '1px solid #e1e1e1',
